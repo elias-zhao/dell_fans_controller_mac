@@ -55,6 +55,7 @@ public enum FanControlMode: Equatable, Sendable {
 public final class AppState: ObservableObject {
     @Published public var config: ServerConfig
     @Published public var password: String
+    @Published public var rememberPassword: Bool
     @Published public var connectionStatus: ConnectionStatus
     @Published public var firmwareInfo: FirmwareInfo?
     @Published public var sensors: [SensorReading]
@@ -91,6 +92,7 @@ public final class AppState: ObservableObject {
         static let username = "dellfans.server.username"
         static let refreshIntervalSeconds = "dellfans.server.refreshIntervalSeconds"
         static let ipmitoolPath = "dellfans.server.ipmitoolPath"
+        static let rememberPassword = "dellfans.server.rememberPassword"
         static let autoRefreshEnabled = "dellfans.server.autoRefreshEnabled"
         static let fanSpeedPercent = "dellfans.fan.speedPercent"
         static let fanControlModeType = "dellfans.fan.controlModeType"
@@ -103,7 +105,7 @@ public final class AppState: ObservableObject {
 
     public init(
         client: IPMIClientProtocol = IPMIClient(),
-        passwordStore: PasswordStoreProtocol = KeychainHelper(),
+        passwordStore: PasswordStoreProtocol = LocalPasswordStore(),
         userDefaults: UserDefaults = .standard,
         startAutoRefreshImmediately: Bool = true
     ) {
@@ -136,10 +138,21 @@ public final class AppState: ObservableObject {
             loadedAutoRefresh = true
         }
 
+        let loadedRememberPassword: Bool
+        if userDefaults.object(forKey: DefaultsKey.rememberPassword) != nil {
+            loadedRememberPassword = userDefaults.bool(forKey: DefaultsKey.rememberPassword)
+        } else {
+            loadedRememberPassword = true
+        }
+
         let loadedPassword: String
-        do {
-            loadedPassword = try passwordStore.loadPassword(account: Self.keychainAccount) ?? ""
-        } catch {
+        if loadedRememberPassword {
+            do {
+                loadedPassword = try passwordStore.loadPassword(account: Self.keychainAccount) ?? ""
+            } catch {
+                loadedPassword = ""
+            }
+        } else {
             loadedPassword = ""
         }
 
@@ -168,6 +181,7 @@ public final class AppState: ObservableObject {
 
         self.config = loadedConfig
         self.password = loadedPassword
+        self.rememberPassword = loadedRememberPassword
         self.connectionStatus = loadedConfig.isConfigured ? .idle : .unconfigured
         self.firmwareInfo = nil
         self.sensors = []
@@ -266,7 +280,8 @@ public final class AppState: ObservableObject {
         username: String,
         password: String,
         refreshInterval: Int,
-        ipmitoolPath: String
+        ipmitoolPath: String,
+        rememberPassword: Bool = true
     ) {
         let previousHost = config.trimmedHost
         let clampedInterval = Self.clampedInterval(refreshInterval)
@@ -278,14 +293,20 @@ public final class AppState: ObservableObject {
             ipmitoolPath: ipmitoolPath.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         self.password = password
+        self.rememberPassword = rememberPassword
 
         userDefaults.set(config.host, forKey: DefaultsKey.host)
         userDefaults.set(config.username, forKey: DefaultsKey.username)
         userDefaults.set(config.refreshIntervalSeconds, forKey: DefaultsKey.refreshIntervalSeconds)
         userDefaults.set(config.ipmitoolPath, forKey: DefaultsKey.ipmitoolPath)
+        userDefaults.set(rememberPassword, forKey: DefaultsKey.rememberPassword)
 
         do {
-            try passwordStore.savePassword(password, account: Self.keychainAccount)
+            if rememberPassword {
+                try passwordStore.savePassword(password, account: Self.keychainAccount)
+            } else {
+                try passwordStore.deletePassword(account: Self.keychainAccount)
+            }
         } catch {
             lastError = error.localizedDescription
         }

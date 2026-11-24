@@ -41,7 +41,7 @@
 - **传感器监控**：解析并展示温度（Temp）、风扇（RPM）、电压（Voltage）、电流（Current）、功耗（Power）传感器，支持分类筛选与关键词搜索。
 - **定时自动刷新**：可配置刷新间隔（3–300 秒），后台自动拉取最新传感器数据。
 - **固件兼容性检测**：自动读取 `mc info` 与机型信息，遇到不支持手动调速的新版本固件时给出明确提示。
-- **安全凭据存储**：iDRAC 密码保存在 macOS 钥匙串（Keychain）中，并通过 `IPMI_PASSWORD` 环境变量（`-E` 参数）传给 `ipmitool`，不出现在命令行参数与进程列表里。
+- **安全凭据存储**：默认以 AES-GCM 加密保存至本地应用支持目录（`0600` 仅当前用户可读，免去开源自签名版本频繁弹钥匙串授权框的困扰），也可关闭“记住密码”仅在内存中保留；调用 `ipmitool` 时通过 `IPMI_PASSWORD` 环境变量（`-E`）传参，不出现在进程列表里。
 - **快捷打开控制台**：一键在浏览器中打开 iDRAC 网页管理界面。
 - **通用架构（Universal）**：原生支持 Apple Silicon（M 系列）与 Intel Mac（macOS 13 及以上）。
 
@@ -114,8 +114,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test
 
 - **提示“未找到 ipmitool 命令”**  
   请确认已执行 `brew install ipmitool`，或在 **连接设置 → 自定义 ipmitool 路径** 中填入 `which ipmitool` 的输出路径。
-- **更新版本后提示访问钥匙串**  
-  因采用本地 ad-hoc 签名，替换新版 App 后首次读取 Keychain 密码时系统会弹出授权框，点击 **始终允许** 即可。
+- **密码保存在哪里？会弹钥匙串密码框吗？**  
+  默认开启“记住密码”，密码以 AES-GCM 加密保存在 `~/Library/Application Support/DellFansController/credentials.bin`（`0600` 权限，仅当前用户可读），不会触发系统钥匙串弹窗；若关闭“记住密码”，则仅保存在内存中、退出即清空。
 - **关于风扇安全**  
   手动将转速固定在过低百分比存在硬件过热风险，请结合自身环境温度与 CPU 负载合理设置，并在不需要时恢复 iDRAC 自动模式。
 

@@ -6,6 +6,7 @@ public struct ConnectionSettingsView: View {
     @State private var host: String
     @State private var username: String
     @State private var password: String
+    @State private var rememberPassword: Bool
     @State private var refreshInterval: Int
     @State private var ipmitoolPath: String
 
@@ -14,6 +15,7 @@ public struct ConnectionSettingsView: View {
         _host = State(initialValue: appState.config.host)
         _username = State(initialValue: appState.config.username)
         _password = State(initialValue: appState.password)
+        _rememberPassword = State(initialValue: appState.rememberPassword)
         _refreshInterval = State(initialValue: appState.config.refreshIntervalSeconds)
         _ipmitoolPath = State(initialValue: appState.config.ipmitoolPath)
     }
@@ -24,6 +26,14 @@ public struct ConnectionSettingsView: View {
                 TextField("主机 / IP 地址", text: $host, prompt: Text("例如 192.168.1.100"))
                 TextField("用户名", text: $username, prompt: Text("例如 root"))
                 SecureField("密码", text: $password, prompt: Text("输入 iDRAC 密码"))
+                Toggle("记住密码", isOn: $rememberPassword)
+                Text(
+                    rememberPassword
+                        ? "密码以 AES-GCM 加密保存在本地应用支持目录（0600 仅当前用户可读），升级应用不弹钥匙串授权框。"
+                        : "关闭后密码仅保存在内存中，退出应用即清除。"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
 
             Section("刷新与工具") {
@@ -149,7 +159,8 @@ public struct ConnectionSettingsView: View {
             username: username,
             password: password,
             refreshInterval: refreshInterval,
-            ipmitoolPath: ipmitoolPath
+            ipmitoolPath: ipmitoolPath,
+            rememberPassword: rememberPassword
         )
     }
 

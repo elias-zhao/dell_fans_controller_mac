@@ -385,4 +385,58 @@ final class AppStateTests: XCTestCase {
         )
         XCTAssertEqual(reloadedAuto.fanControlMode, .unknown)
     }
+
+    @MainActor
+    func testRememberPasswordToggleClearsPersistedPassword() throws {
+        let state = makeAppState()
+        state.saveConnectionSettings(
+            host: "192.168.1.250",
+            username: "root",
+            password: "secret-password",
+            refreshInterval: 10,
+            ipmitoolPath: "",
+            rememberPassword: true
+        )
+        XCTAssertEqual(try passwordStore.loadPassword(account: "default"), "secret-password")
+
+        state.saveConnectionSettings(
+            host: "192.168.1.250",
+            username: "root",
+            password: "secret-password",
+            refreshInterval: 10,
+            ipmitoolPath: "",
+            rememberPassword: false
+        )
+        XCTAssertEqual(state.password, "secret-password")
+        XCTAssertFalse(state.rememberPassword)
+        XCTAssertNil(try passwordStore.loadPassword(account: "default"))
+
+        let reloaded = makeAppState()
+        XCTAssertFalse(reloaded.rememberPassword)
+        XCTAssertEqual(reloaded.password, "")
+    }
+
+    func testLocalPasswordStoreEncryptsAndSetsRestrictedPermissions() throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("LocalPasswordStoreTests-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let store = LocalPasswordStore(directoryURL: tempDir)
+        XCTAssertNil(try store.loadPassword(account: "default"))
+
+        try store.savePassword("super-secret-idrac-pw", account: "default")
+        XCTAssertEqual(try store.loadPassword(account: "default"), "super-secret-idrac-pw")
+
+        let rawData = try Data(contentsOf: store.fileURL)
+        let rawString = String(data: rawData, encoding: .utf8) ?? ""
+        XCTAssertFalse(rawString.contains("super-secret-idrac-pw"))
+
+        let attrs = try FileManager.default.attributesOfItem(atPath: store.fileURL.path)
+        let perms = attrs[.posixPermissions] as? Int
+        XCTAssertEqual(perms, 0o600)
+
+        try store.deletePassword(account: "default")
+        XCTAssertNil(try store.loadPassword(account: "default"))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: store.fileURL.path))
+    }
 }
