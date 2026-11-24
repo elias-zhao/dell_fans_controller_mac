@@ -14,7 +14,6 @@ public struct AboutView: View {
                 compatibilityCard
                 safetyWarningCard
                 ipmitoolCard
-                creditCard
             }
             .padding(20)
             .frame(maxWidth: 680, alignment: .leading)
@@ -146,16 +145,6 @@ public struct AboutView: View {
             }
             .padding(12)
             .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
-        }
-    }
-
-    private var creditCard: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("致谢")
-                .font(.headline)
-            Text("本项目的 IPMI 风扇控制逻辑参考并致敬开源项目 cw1997/dell_fans_controller。")
-                .font(.callout)
-                .foregroundStyle(.secondary)
         }
     }
 }

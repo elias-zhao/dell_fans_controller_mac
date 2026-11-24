@@ -1,8 +1,36 @@
-# Dell Fans Controller for macOS
+<div align="center">
+  <img src="Resources/AppIcon.png" alt="Dell Fans Controller Icon" width="128" height="128" />
+  <h1>Dell Fans Controller for macOS</h1>
+  <p>面向 macOS 的戴尔（Dell PowerEdge）服务器风扇转速控制与传感器监控工具</p>
 
-面向 macOS 的戴尔（Dell PowerEdge）服务器风扇转速控制工具。通过 IPMI over LAN 连接 iDRAC，常驻系统菜单栏实时显示温度，支持手动设定风扇转速百分比、一键恢复自动调速以及查看服务器传感器详情。
+  <p>
+    <img src="https://img.shields.io/badge/macOS-13.0%2B-000000?logo=apple&logoColor=white" alt="macOS 13.0+" />
+    <img src="https://img.shields.io/badge/Arch-Apple%20Silicon%20%26%20Intel-0A84FF" alt="Universal" />
+    <img src="https://img.shields.io/badge/Built%20with-SwiftUI-F05138?logo=swift&logoColor=white" alt="SwiftUI" />
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License Apache-2.0" /></a>
+  </p>
+</div>
 
-> 参考项目：[cw1997/dell_fans_controller](https://github.com/cw1997/dell_fans_controller)（Windows / WinForms 版）
+通过 IPMI over LAN 连接 iDRAC，常驻系统菜单栏实时显示温度，支持手动设定风扇转速百分比、一键恢复自动调速以及查看服务器传感器详情。
+
+---
+
+## 界面预览
+
+<table>
+  <tr>
+    <td align="center" valign="top">
+      <img src="docs/screenshots/menubar-panel.jpg" alt="菜单栏快捷面板" width="280" />
+      <br />
+      <sub>菜单栏快捷面板</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="docs/screenshots/connection-settings.jpg" alt="连接设置与固件兼容性检测" width="520" />
+      <br />
+      <sub>连接设置与固件兼容性检测</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -45,7 +73,7 @@
 
 ## 安装与首次打开（重要）
 
-1. 从 Releases 下载 `DellFansController-v*-macOS-universal.dmg`（或 `.zip`）。
+1. 从 [Releases](https://github.com/elias-zhao/dell_fans_controller_mac/releases) 下载 `DellFansController-v*-macOS-universal.dmg`（或 `.zip`）。
 2. 将 `DellFansController.app` 拖入 **应用程序（`/Applications`）** 文件夹。
 3. **解除开源未公证应用拦截（仅首次需要）**  
    由于本项目为免费开源软件，未使用付费 Apple Developer 证书签名和公证，从网络下载后 macOS Gatekeeper 会提示“无法验证开发者”或“已损坏”。请在终端运行一次以下命令清除下载隔离标记：
@@ -90,3 +118,9 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test
   因采用本地 ad-hoc 签名，替换新版 App 后首次读取 Keychain 密码时系统会弹出授权框，点击 **始终允许** 即可。
 - **关于风扇安全**  
   手动将转速固定在过低百分比存在硬件过热风险，请结合自身环境温度与 CPU 负载合理设置，并在不需要时恢复 iDRAC 自动模式。
+
+---
+
+## 开源协议
+
+本项目基于 [Apache License 2.0](LICENSE) 开源。
