@@ -1,0 +1,84 @@
+name: Release macOS App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode and Swift versions
+        run: |
+          xcode-select -p
+          swift --version
+
+      - name: Run unit tests
+        run: swift test
+
+      - name: Build Universal .app, .zip, and .dmg
+        run: |
+          chmod +x ./scripts/build-app.sh
+          ./scripts/build-app.sh
+          ls -lh build/DellFansController-v*-macOS-universal.*
+          lipo -info build/DellFansController.app/Contents/MacOS/DellFansController
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+
+          DMG_FILE="$(ls build/DellFansController-v*-macOS-universal.dmg | head -n 1)"
+          ZIP_FILE="$(ls build/DellFansController-v*-macOS-universal.zip | head -n 1)"
+
+          DMG_SHA="$(shasum -a 256 "$DMG_FILE" | awk '{print $1}')"
+          ZIP_SHA="$(shasum -a 256 "$ZIP_FILE" | awk '{print $1}')"
+          DMG_NAME="$(basename "$DMG_FILE")"
+          ZIP_NAME="$(basename "$ZIP_FILE")"
+
+          cat > release-notes.md <<EOF
+          ## Dell Fans Controller ${TAG} (macOS Universal)
+
+          原生支持 Apple Silicon（M 系列）与 Intel Mac（macOS 13.0+）。
+
+          ### 安装说明
+          1. 下载下方 \`${DMG_NAME}\`（或 \`${ZIP_NAME}\`），将 \`DellFansController.app\` 拖入 **应用程序（/Applications）**。
+          2. 首次打开前，由于开源版本未进行 Apple Developer 付费公证，请在终端执行一次：
+             \`\`\`bash
+             xattr -cr /Applications/DellFansController.app
+             \`\`\`
+          3. 确保本机已安装 \`ipmitool\`（\`brew install ipmitool\`），并在服务器 iDRAC 中启用 **IPMI over LAN**。
+
+          ### SHA-256 校验值
+          \`\`\`
+          ${DMG_SHA}  ${DMG_NAME}
+          ${ZIP_SHA}  ${ZIP_NAME}
+          \`\`\`
+          EOF
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$DMG_FILE" "$ZIP_FILE" --clobber
+            gh release edit "$TAG" --title "Dell Fans Controller ${TAG}" --notes-file release-notes.md
+          else
+            gh release create "$TAG" "$DMG_FILE" "$ZIP_FILE" \
+              --title "Dell Fans Controller ${TAG}" \
+              --notes-file release-notes.md
+          fi
