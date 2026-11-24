@@ -13,3 +13,6 @@ build/
 DerivedData/
 *.xcuserstate
 *.xcuserdata
+
+# Local notes / planning
+PLAN.md
