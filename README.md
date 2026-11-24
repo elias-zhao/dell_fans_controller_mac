@@ -4,10 +4,10 @@
   <p>面向 macOS 的戴尔（Dell PowerEdge）服务器风扇转速控制与传感器监控工具</p>
 
   <p>
-    <img src="https://img.shields.io/badge/macOS-13.0%2B-000000?logo=apple&logoColor=white" alt="macOS 13.0+" />
-    <img src="https://img.shields.io/badge/Arch-Apple%20Silicon%20%26%20Intel-0A84FF" alt="Universal" />
-    <img src="https://img.shields.io/badge/Built%20with-SwiftUI-F05138?logo=swift&logoColor=white" alt="SwiftUI" />
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License Apache-2.0" /></a>
+    <img src="docs/badges/macos.svg" alt="macOS 13.0+" />
+    <img src="docs/badges/arch.svg" alt="Apple Silicon &amp; Intel" />
+    <img src="docs/badges/swiftui.svg" alt="SwiftUI" />
+    <a href="LICENSE"><img src="docs/badges/license.svg" alt="License Apache-2.0" /></a>
   </p>
 </div>
 
